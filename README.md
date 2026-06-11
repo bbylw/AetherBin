@@ -1,3 +1,91 @@
+# AetherBin — Zero-Knowledge Secure Pastebin 🛡️
+
+AetherBin is a premium, secure, and **zero-knowledge** client-side encrypted text and code pastebin. All text and Markdown content is encrypted in the browser using the **AES-256-GCM** algorithm before upload. The decryption key remains strictly in the URL hash fragment and is never sent to Cloudflare servers, ensuring absolute privacy.
+
+This project is streamlined into a **single-file architecture** (`_worker.js`). You do not need to install Node.js, Wrangler, or any local development tools. It supports two simple deployment options:
+
+---
+
+## ⚡ Deployment Option 1: Cloudflare Workers (Manual Copy-Paste)
+
+### Step 1: Create a Cloudflare KV Namespace
+1. Log in to your [Cloudflare Dashboard](https://dash.cloudflare.com/).
+2. Select **Workers & Pages** -> **KV** from the left-hand menu.
+3. Click the **Create a namespace** button.
+4. Name the namespace `PASTE_KV` (**make sure it is exactly uppercase `PASTE_KV`**) and click **Add**.
+
+### Step 2: Create a Worker and Paste the Code
+1. Select **Workers & Pages** -> **Overview** -> **Create Application** -> **Create Worker**.
+2. Name your Worker (e.g., `aetherbin`) and click **Deploy**.
+3. Once deployed, click **Edit Code**.
+4. Open the project file: 👉 **[_worker.js](file:///c:/Users/bbylw/Desktop/net/_worker.js)** 👈, and **copy all its code**.
+5. In the Cloudflare web editor, clear any default code, paste the copied code, and click **Save and deploy** in the upper right.
+
+### Step 3: Bind the KV Namespace to the Worker
+1. Go back to the Worker's homepage dashboard.
+2. Select the **Settings** tab -> **Variables**.
+3. Scroll to the bottom to find the **KV Namespace Bindings** section, and click **Add binding**.
+4. Fill in the following:
+   - **Variable name**: `PASTE_KV` (**must be uppercase and exactly match**)
+   - **KV Namespace**: Select the `PASTE_KV` namespace you created in Step 1.
+5. Click **Save and deploy**.
+
+🎉 **Deployment Complete!** You can now access your Worker URL and start sharing text securely!
+
+---
+
+## 🚀 Deployment Option 2: Cloudflare Pages (GitHub Integration - Recommended)
+
+Because AetherBin follows standard `_worker.js` rules, you can connect your GitHub repository directly to Cloudflare Pages for automatic CI/CD deployment:
+
+### Step 1: Create a Cloudflare KV Namespace
+(Follow "Step 1" above to create a KV namespace named `PASTE_KV`).
+
+### Step 2: Import GitHub Repository to Pages
+1. Log in to your [Cloudflare Dashboard](https://dash.cloudflare.com/).
+2. Select **Workers & Pages** -> **Overview** from the left-hand menu.
+3. Click **Create Application** -> select the **Pages** tab.
+4. Click **Connect to Git**, link your GitHub account, and choose your `AetherBin` repository.
+5. In the **Build settings** stage:
+   - **Framework preset**: Select `None`.
+   - **Build command**: Leave empty.
+   - **Build output directory**: Enter `./` or `/` (meaning root directory, where `_worker.js` is located).
+6. Click **Save and Deploy**.
+
+### Step 3: Bind the KV Namespace to Pages
+1. In your Pages project dashboard, select the **Settings** tab -> **Functions**.
+2. Scroll down to find the **KV namespace bindings** section.
+3. Click **Add binding** (it is recommended to add it for both **Production** and **Preview** environments):
+   - **Variable name**: `PASTE_KV` (**must be uppercase and exactly match**)
+   - **KV Namespace**: Select the `PASTE_KV` namespace you created in Step 1.
+4. Click **Save**.
+5. **⚠️ Critical Step**: After binding KV, you must redeploy Pages for it to take effect. Go to the **Deployments** tab, find the latest deployment, click the three dots on the right, and select **Redeploy** (or push a new commit to your GitHub repository).
+
+🎉 **Pages Deployment Complete!** Visit the `.pages.dev` domain assigned to your Pages project to start sharing!
+
+---
+
+## ⚙️ Core Limits & Features
+
+- **⏱️ Max 7-Day Expiration**:
+  To protect edge storage, the system enforces a strict **7-day** (168 hours) expiration limit. Available expiration settings:
+  - 5 Minutes
+  - 1 Hour
+  - 1 Day
+  - 7 Days (Default & Max limit)
+- **📎 No Attachments**:
+  This is a lightweight **plain text, Markdown, and source code pastebin** only. It does not support file attachments to prevent storage abuse and safety risks.
+- **🔥 Burn After Reading**:
+  If enabled, the encrypted paste is deleted from Cloudflare KV immediately after the recipient fetches and decrypts it.
+- **🔑 Dual-Factor Password**:
+  Optional password protection. Generates a master key and uses it with your custom password via **PBKDF2-HMAC-SHA256** (100,000 iterations) to encrypt the content.
+- **🌐 Bilingual Support**:
+  Detects browser language preferences automatically and renders pages in English or Simplified Chinese. The UI provides a real-time language switcher that saves preferences in `localStorage`.
+
+<br><br>
+
+---
+
 # AetherBin — 零知识临时加密在线粘贴板 🛡️
 
 AetherBin 是一个高颜值、安全的**零知识（Zero-Knowledge）** 客户端加密文本在线粘贴板。所有文本和 Markdown 内容在上传前，都会在浏览器中通过 **AES-256-GCM** 算法加密，密钥保存在 URL Hash 中，不经过 Cloudflare 服务器，确保绝对隐私。
