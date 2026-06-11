@@ -1689,10 +1689,22 @@ function getHtmlPage() {
         try {
           state.decryptionKeyRaw = base64UrlToBuffer(keyB64);
           setMode('loading', t().loading_retrieving);
-          const response = await fetch('/api/paste/' + id);
-          if (!response.ok) throw new Error(t().error_not_found);
           
-          state.fetchedPaste = await response.json();
+          let paste;
+          if (sessionStorage.getItem('just_created_' + id) === 'true') {
+            const cachedData = sessionStorage.getItem('paste_data_' + id);
+            if (cachedData) {
+              paste = JSON.parse(cachedData);
+            }
+          }
+          
+          if (!paste) {
+            const response = await fetch('/api/paste/' + id);
+            if (!response.ok) throw new Error(t().error_not_found);
+            paste = await response.json();
+          }
+          
+          state.fetchedPaste = paste;
           if (state.fetchedPaste.options?.is_encrypted_with_password) {
             setMode('password');
           } else {
@@ -1838,6 +1850,18 @@ function getHtmlPage() {
         
         const result = await response.json();
         const keyB64 = bufferToBase64Url(masterKeyRaw);
+        
+        // Cache data in sessionStorage to avoid triggering the burn-after-read deletion during creator's initial view
+        const pasteData = {
+          ciphertext: apiBody.ciphertext,
+          iv: apiBody.iv,
+          options: apiBody.options,
+          created_at: Date.now(),
+          expires_at: apiBody.options.expiration === '7d' ? Date.now() + 604800000 : undefined
+        };
+        sessionStorage.setItem('just_created_' + result.id, 'true');
+        sessionStorage.setItem('paste_data_' + result.id, JSON.stringify(pasteData));
+
         window.location.hash = result.id + '_' + keyB64;
         showToast(t().toast_success, 'success');
       } catch (err) {
