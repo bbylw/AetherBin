@@ -363,7 +363,7 @@ function getHtmlPage() {
       gap: 1rem;
     }
 
-    .social-link {
+    .github-link {
       color: var(--text-secondary);
       display: flex;
       align-items: center;
@@ -374,9 +374,16 @@ function getHtmlPage() {
       text-decoration: none;
     }
 
-    .social-link:hover {
+    .github-link:hover {
       color: var(--text-primary);
       background: rgba(255, 255, 255, 0.05);
+    }
+
+    .github-link i,
+    .github-link svg {
+      width: 20px;
+      height: 20px;
+      display: block;
     }
 
     .glass {
@@ -1215,7 +1222,7 @@ function getHtmlPage() {
         <button id="btn-new-paste" class="btn btn-secondary hidden">
           <i data-lucide="plus"></i> <span data-i18n="new_paste">New Paste</span>
         </button>
-        <a href="https://github.com/bbylw/AetherBin" target="_blank" rel="noopener noreferrer" class="social-link" title="Source Code">
+        <a href="https://github.com/bbylw/AetherBin" target="_blank" rel="noopener noreferrer" class="github-link" title="Source Code">
           <i data-lucide="github"></i>
         </a>
       </div>
