@@ -2,15 +2,15 @@
 
 AetherBin 是一个高颜值、安全的**零知识（Zero-Knowledge）** 客户端加密文本在线粘贴板。所有文本和 Markdown 内容在上传前，都会在浏览器中通过 **AES-256-GCM** 算法加密，密钥保存在 URL Hash 中，不经过 Cloudflare 服务器，确保绝对隐私。
 
-本项目已精简为**单个 Cloudflare Worker 文件**。您无需安装 Node.js、Wrangler 或任何本地开发工具，**只需复制一个文件并在网页端绑定 KV，即可完成全套部署**！
+本项目已精简为**单文件架构**（`_worker.js`）。您无需安装 Node.js、Wrangler 或任何本地开发工具，支持以下两种部署方式：
 
 ---
 
-## ⚡ 极速部署指南（只需 3 步）
+## ⚡ 部署方式一：Cloudflare Workers 部署 (手动粘贴)
 
 ### 第一步：创建 Cloudflare KV 命名空间
 1. 登录您的 [Cloudflare 控制台](https://dash.cloudflare.com/)。
-2. 依次点击左侧菜单的 **Workers & Pages (Woker 和页面)** -> **KV**。
+2. 依次点击左侧菜单的 **Workers & Pages (Worker 和页面)** -> **KV**。
 3. 点击 **Create a namespace (创建命名空间)** 按钮。
 4. 将命名空间命名为 `PASTE_KV`（**请确保名称完全一致，全大写**），然后点击 **Add (添加)**。
 
@@ -18,7 +18,7 @@ AetherBin 是一个高颜值、安全的**零知识（Zero-Knowledge）** 客户
 1. 依次点击左侧菜单的 **Workers & Pages** -> **Overview (概述)** -> **Create Application (创建应用程序)** -> **Create Worker (创建 Worker)**。
 2. 为您的 Worker 命名（例如 `aetherbin`），点击 **Deploy (部署)**。
 3. 部署成功后，点击 **Edit Code (编辑代码)** 按钮。
-4. 打开本项目的工作区文件：👉 **[src/index.js](file:///c:/Users/bbylw/Desktop/net/src/index.js)** 👈，**复制里面的全部代码**。
+4. 打开本项目的工作区文件：👉 **[_worker.js](file:///c:/Users/bbylw/Desktop/net/_worker.js)** 👈，**复制里面的全部代码**。
 5. 在 Cloudflare 网页编辑器中，清空原本的所有默认代码，将您复制的代码粘贴进去，然后点击右上角的 **Save and deploy (保存并部署)**。
 
 ### 第三步：绑定 KV 命名空间到 Worker
@@ -30,7 +30,38 @@ AetherBin 是一个高颜值、安全的**零知识（Zero-Knowledge）** 客户
    - **KV Namespace (KV 命名空间)**: 选择您在第一步创建的 `PASTE_KV`
 5. 点击 **Save and deploy (保存并部署)**。
 
-🎉 **部署完成！** 现在访问您的 Worker URL，即可立刻开始安全分享您的加密文本！
+🎉 **部署完成！** 现在访问您的 Worker 路由 URL，即可立刻开始安全分享！
+
+---
+
+## 🚀 部署方式二：Cloudflare Pages 部署 (连接 GitHub，推荐)
+
+由于本项目已经支持标准的 `_worker.js` 规则，您可以直接将您的 GitHub 仓库连接到 Cloudflare Pages，享受自动化 CI/CD 部署：
+
+### 第一步：创建 Cloudflare KV 命名空间
+（同上文的“第一步”，创建名为 `PASTE_KV` 的 KV 命名空间）。
+
+### 第二步：导入 GitHub 仓库到 Pages
+1. 登录您的 [Cloudflare 控制台](https://dash.cloudflare.com/)。
+2. 依次点击左侧菜单的 **Workers & Pages (Worker 和页面)** -> **Overview (概述)**。
+3. 点击 **Create Application (创建应用程序)** -> 选择 **Pages (页面)** 选项卡。
+4. 选择 **Connect to Git (连接到 Git)**，绑定您的 GitHub 账号并选择 `AetherBin` 仓库。
+5. 在 **Build settings (构建设置)** 阶段：
+   - **Framework preset (框架预设)**: 选择 `None`。
+   - **Build command (构建命令)**: 留空（不填）。
+   - **Build output directory (构建输出目录)**: 填写 `./` 或 `/`（代表根目录，即 `_worker.js` 所在位置）。
+6. 点击 **Save and Deploy (保存并部署)**。
+
+### 第三步：绑定 KV 命名空间到 Pages
+1. 在 Pages 项目的控制台页面中，点击 **Settings (设置)** 选项卡 -> **Functions (函数)**。
+2. 滚动页面找到 **KV namespace bindings (KV 命名空间绑定)** 区域。
+3. 点击 **Add binding (添加绑定)**（建议在 **Production (生产环境)** 和 **Preview (预览环境)** 中都添加）：
+   - **Variable name (变量名称)**: `PASTE_KV` （**全大写，必须一致**）
+   - **KV Namespace (KV 命名空间)**: 选择您第一步创建的 `PASTE_KV`
+4. 点击 **Save (保存)**。
+5. **⚠️ 重要步骤**：绑定 KV 后，您必须重新部署一次 Pages 才能让绑定生效。您可以前往 **Deployments (部署)** 选项卡，找到最新一次部署，点击右侧的三个点并选择 **Redeploy (重新部署)**，或者直接向 GitHub 仓库推送一个新提交。
+
+🎉 **Pages 部署完成！** 访问 Pages 给您分配的 `.pages.dev` 域名即可立即使用！
 
 ---
 
