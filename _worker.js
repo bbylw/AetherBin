@@ -365,28 +365,31 @@ function getHtmlPage() {
 
     .github-link,
     .github-link:visited {
-      color: var(--text-secondary) !important;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0.5rem;
-      border-radius: var(--radius-sm);
+      background: var(--bg-tertiary) !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: var(--radius-md) !important;
+      color: var(--text-secondary) !important;
       transition: var(--transition-fast);
       text-decoration: none;
+      width: 38px;
+      height: 38px;
+      box-sizing: border-box;
     }
 
     .github-link:hover,
     .github-link:active {
+      border-color: var(--border-color-hover) !important;
+      background: rgba(30, 34, 48, 0.8) !important;
       color: var(--text-primary) !important;
-      background: rgba(255, 255, 255, 0.05);
     }
 
-    .github-link i,
     .github-link svg {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       display: block;
-      color: inherit !important;
       stroke: currentColor !important;
     }
 
@@ -1227,7 +1230,10 @@ function getHtmlPage() {
           <i data-lucide="plus"></i> <span data-i18n="new_paste">New Paste</span>
         </button>
         <a href="https://github.com/bbylw/AetherBin" target="_blank" rel="noopener noreferrer" class="github-link" title="Source Code">
-          <i data-lucide="github"></i>
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
+            <path d="M9 18c-4.51 2-5-2-7-2"></path>
+          </svg>
         </a>
       </div>
     </header>
