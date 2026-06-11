@@ -1704,11 +1704,17 @@ function getHtmlPage() {
       state.decryptionKeyRaw = null;
       resetEditorForm();
       
-      const match = hash.match(/^#([a-f0-9]{16})_([a-zA-Z0-9\-_]+)(_burn)?$/);
+      let hashString = hash;
+      let isBurn = false;
+      if (hashString.endsWith('_burn')) {
+        isBurn = true;
+        hashString = hashString.slice(0, -5);
+      }
+      
+      const match = hashString.match(/^#([a-f0-9]{16})_(.+)$/);
       if (match) {
         const id = match[1];
         const keyB64 = match[2];
-        const isBurn = !!match[3];
         try {
           state.decryptionKeyRaw = base64UrlToBuffer(keyB64);
           
