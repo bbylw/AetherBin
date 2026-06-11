@@ -1,6 +1,7 @@
 /**
  * AetherBin - Single-File Cloudflare Worker Deployable Script
  * Zero-Knowledge Client-Side Encrypted Pastebin
+ * GitHub: https://github.com/bbylw/AetherBin
  * Supports dynamic EN/CN translation, 7-day max retention, burn-after-read, and QR Code generation.
  * 
  * Instructions:
@@ -1214,7 +1215,7 @@ function getHtmlPage() {
         <button id="btn-new-paste" class="btn btn-secondary hidden">
           <i data-lucide="plus"></i> <span data-i18n="new_paste">New Paste</span>
         </button>
-        <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="social-link" title="Source Code">
+        <a href="https://github.com/bbylw/AetherBin" target="_blank" rel="noopener noreferrer" class="social-link" title="Source Code">
           <i data-lucide="github"></i>
         </a>
       </div>
