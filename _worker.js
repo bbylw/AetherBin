@@ -1413,6 +1413,20 @@ function getHtmlPage() {
         </div>
       </section>
 
+      <!-- ================= BURN-AFTER-READ PROMPT CARD ================= -->
+      <section id="burn-prompt-section" class="panel-section">
+        <div class="password-prompt-card">
+          <div class="prompt-icon" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: var(--error-color);">
+            <i data-lucide="flame"></i>
+          </div>
+          <h2 data-i18n="burn_confirm_title">Burn-After-Read Paste</h2>
+          <p data-i18n="burn_confirm_desc">This paste is configured to burn after reading. Clicking the button below will decrypt and permanently destroy it from the database.</p>
+          <button id="btn-trigger-burn-read" class="btn btn-primary btn-block" style="background: var(--error-color); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+            <i data-lucide="unlock"></i> <span data-i18n="burn_confirm_btn">Read & Destroy</span>
+          </button>
+        </div>
+      </section>
+
       <!-- ================= LOADING STATE ================= -->
       <div id="loading-overlay" class="loading-overlay hidden">
         <div class="loader-content">
@@ -1505,7 +1519,10 @@ function getHtmlPage() {
         loading_uploading: 'Uploading ciphertext...',
         meta_created_at: 'Created: {date}',
         meta_expires_at: 'Expires: {date}',
-        error_not_found: 'Paste not found, expired, or already burned.'
+        error_not_found: 'Paste not found, expired, or already burned.',
+        burn_confirm_title: 'Burn-After-Read Paste',
+        burn_confirm_desc: 'This paste is configured to burn after reading. Clicking the button below will decrypt and permanently destroy it from the database.',
+        burn_confirm_btn: 'Read & Destroy'
       },
       cn: {
         tagline: '客户端加密安全分享',
@@ -1554,7 +1571,10 @@ function getHtmlPage() {
         loading_uploading: '正在上传密文数据...',
         meta_created_at: '创建时间: {date}',
         meta_expires_at: '过期时间: {date}',
-        error_not_found: '找不到该粘贴板内容，可能已过期或已被销毁。'
+        error_not_found: '找不到该粘贴板内容，可能已过期或已被销毁。',
+        burn_confirm_title: '阅后即焚粘贴板',
+        burn_confirm_desc: '此粘贴板已配置为“阅后即焚”。点击下方按钮将获取并解密内容，同时该内容会从数据库中永久销毁。',
+        burn_confirm_btn: '读取并销毁'
       }
     };
 
@@ -1609,7 +1629,9 @@ function getHtmlPage() {
       decryptPassword: document.getElementById('decrypt-password'),
       btnToggleDecryptPasswordView: document.getElementById('btn-toggle-decrypt-password-view'),
       btnDecrypt: document.getElementById('btn-decrypt'),
-      decryptError: document.getElementById('decrypt-error')
+      decryptError: document.getElementById('decrypt-error'),
+      burnPromptSection: document.getElementById('burn-prompt-section'),
+      btnTriggerBurnRead: document.getElementById('btn-trigger-burn-read')
     };
 
     function t() {
@@ -1682,13 +1704,13 @@ function getHtmlPage() {
       state.decryptionKeyRaw = null;
       resetEditorForm();
       
-      const match = hash.match(/^#([a-f0-9]{16})_(.+)$/);
+      const match = hash.match(/^#([a-f0-9]{16})_([a-zA-Z0-9\-_]+)(_burn)?$/);
       if (match) {
         const id = match[1];
         const keyB64 = match[2];
+        const isBurn = !!match[3];
         try {
           state.decryptionKeyRaw = base64UrlToBuffer(keyB64);
-          setMode('loading', t().loading_retrieving);
           
           let paste;
           if (sessionStorage.getItem('just_created_' + id) === 'true') {
@@ -1698,17 +1720,51 @@ function getHtmlPage() {
             }
           }
           
-          if (!paste) {
+          if (paste) {
+            state.fetchedPaste = paste;
+            if (state.fetchedPaste.options?.is_encrypted_with_password) {
+              setMode('password');
+            } else {
+              await decryptAndDisplayPaste();
+            }
+          } else if (isBurn) {
+            setMode('burn-prompt');
+            
+            // Re-bind click event cleanly to avoid duplicate trigger
+            const btn = el.btnTriggerBurnRead;
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            el.btnTriggerBurnRead = newBtn;
+            
+            el.btnTriggerBurnRead.addEventListener('click', async () => {
+              try {
+                setMode('loading', t().loading_retrieving);
+                const response = await fetch('/api/paste/' + id);
+                if (!response.ok) throw new Error(t().error_not_found);
+                
+                state.fetchedPaste = await response.json();
+                if (state.fetchedPaste.options?.is_encrypted_with_password) {
+                  setMode('password');
+                } else {
+                  await decryptAndDisplayPaste();
+                }
+              } catch (err) {
+                showToast(err.message, 'error');
+                window.location.hash = '';
+                setMode('editor');
+              }
+            });
+          } else {
+            setMode('loading', t().loading_retrieving);
             const response = await fetch('/api/paste/' + id);
             if (!response.ok) throw new Error(t().error_not_found);
-            paste = await response.json();
-          }
-          
-          state.fetchedPaste = paste;
-          if (state.fetchedPaste.options?.is_encrypted_with_password) {
-            setMode('password');
-          } else {
-            await decryptAndDisplayPaste();
+            
+            state.fetchedPaste = await response.json();
+            if (state.fetchedPaste.options?.is_encrypted_with_password) {
+              setMode('password');
+            } else {
+              await decryptAndDisplayPaste();
+            }
           }
         } catch (err) {
           showToast(err.message, 'error');
@@ -1862,7 +1918,7 @@ function getHtmlPage() {
         sessionStorage.setItem('just_created_' + result.id, 'true');
         sessionStorage.setItem('paste_data_' + result.id, JSON.stringify(pasteData));
 
-        window.location.hash = result.id + '_' + keyB64;
+        window.location.hash = result.id + '_' + keyB64 + (burnAfterRead ? '_burn' : '');
         showToast(t().toast_success, 'success');
       } catch (err) {
         showToast(err.message, 'error');
@@ -1876,6 +1932,7 @@ function getHtmlPage() {
       el.editorSection.classList.toggle('active', mode === 'editor');
       el.viewSection.classList.toggle('active', mode === 'view');
       el.passwordPromptSection.classList.toggle('active', mode === 'password');
+      el.burnPromptSection.classList.toggle('active', mode === 'burn-prompt');
       
       if (mode === 'loading') {
         el.loadingText.textContent = loadingMsg;
