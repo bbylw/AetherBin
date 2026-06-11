@@ -363,8 +363,9 @@ function getHtmlPage() {
       gap: 1rem;
     }
 
-    .github-link {
-      color: var(--text-secondary);
+    .github-link,
+    .github-link:visited {
+      color: var(--text-secondary) !important;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -374,8 +375,9 @@ function getHtmlPage() {
       text-decoration: none;
     }
 
-    .github-link:hover {
-      color: var(--text-primary);
+    .github-link:hover,
+    .github-link:active {
+      color: var(--text-primary) !important;
       background: rgba(255, 255, 255, 0.05);
     }
 
@@ -384,6 +386,8 @@ function getHtmlPage() {
       width: 20px;
       height: 20px;
       display: block;
+      color: inherit !important;
+      stroke: currentColor !important;
     }
 
     .glass {
