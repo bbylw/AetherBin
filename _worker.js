@@ -1831,7 +1831,8 @@ function getHtmlPage() {
         const format = paste.options?.format || 'plaintext';
         if (format === 'markdown') {
           el.markdownViewer.classList.remove('hidden');
-          el.markdownViewer.innerHTML = marked.parse(payload.content || '', { sanitize: true });
+          const parsedMarkdown = marked.parse(payload.content || '');
+          el.markdownViewer.replaceChildren(sanitizeHtmlToFragment(parsedMarkdown));
         } else {
           el.codeViewerContainer.classList.remove('hidden');
           el.codeViewer.textContent = payload.content;
@@ -1991,7 +1992,11 @@ function getHtmlPage() {
       if (type === 'success') iconName = 'check-circle-2';
       if (type === 'error') iconName = 'x-circle';
       
-      toast.innerHTML = '<i data-lucide="' + iconName + '"></i><span>' + message + '</span>';
+      const icon = document.createElement('i');
+      icon.setAttribute('data-lucide', iconName);
+      const text = document.createElement('span');
+      text.textContent = message;
+      toast.append(icon, text);
       el.toastContainer.appendChild(toast);
       lucide.createIcons();
       setTimeout(() => toast.style.opacity = '1', 50);
@@ -2012,6 +2017,35 @@ function getHtmlPage() {
           setMode('editor');
         }
       }
+    }
+
+    function sanitizeHtmlToFragment(html) {
+      const template = document.createElement('template');
+      template.innerHTML = html;
+      const allowedTags = new Set(['A', 'P', 'BR', 'STRONG', 'B', 'EM', 'I', 'CODE', 'PRE', 'BLOCKQUOTE', 'UL', 'OL', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TH', 'TD']);
+      const allowedAttrs = new Set(['href', 'title']);
+
+      template.content.querySelectorAll('*').forEach(node => {
+        if (!allowedTags.has(node.tagName)) {
+          node.replaceWith(...node.childNodes);
+          return;
+        }
+
+        Array.from(node.attributes).forEach(attr => {
+          const name = attr.name.toLowerCase();
+          const value = attr.value.trim();
+          if (!allowedAttrs.has(name) || (name === 'href' && !/^(https?:|mailto:|#)/i.test(value))) {
+            node.removeAttribute(attr.name);
+          }
+        });
+
+        if (node.tagName === 'A') {
+          node.setAttribute('rel', 'noopener noreferrer nofollow');
+          node.setAttribute('target', '_blank');
+        }
+      });
+
+      return template.content;
     }
 
     function initListeners() {
